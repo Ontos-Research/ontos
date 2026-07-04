@@ -144,6 +144,14 @@ PY
   fi
 done
 
+# --- 3c. Corporate proxy: CA overlay (TLS-intercepting proxy) ---------------
+if [ -n "${ONTOS_CA_BUNDLE:-}" ]; then
+  [ -f "$ONTOS_CA_BUNDLE" ] || die "ONTOS_CA_BUNDLE is set but the file does not exist: $ONTOS_CA_BUNDLE"
+  FILES="$FILES -f docker-compose.proxy.yml"
+  log "Proxy CA overlay on — mounting $ONTOS_CA_BUNDLE into the control plane."
+fi
+[ -n "${HTTP_PROXY:-}${HTTPS_PROXY:-}" ] && log "Proxy configured — LLM egress routes through it (loopback + internal stay direct)."
+
 # --- 4. LLM reachability preflight ------------------------------------------
 if [ "$SKIP_PREFLIGHT" -eq 0 ] && [ -n "${DATADEX_SEED_LLM_API_KEY:-}" ]; then
   if [ -n "${DATADEX_OPENAI_RESPONSES_URL:-}${DATADEX_GROQ_URL:-}" ]; then
@@ -193,7 +201,7 @@ url="http://127.0.0.1:${DATADEX_PORT:-8080}/health"
 log "Waiting for the control plane at ${url} …"
 healthy=0
 for _ in $(seq 1 60); do
-  if curl -sf -m 3 "$url" >/dev/null 2>&1; then healthy=1; break; fi
+  if curl -sf -m 3 --noproxy '127.0.0.1,localhost' "$url" >/dev/null 2>&1; then healthy=1; break; fi
   sleep 3
 done
 [ "$healthy" -eq 1 ] && log "Control plane healthy." || warn "Control plane not healthy yet. Inspect: $COMPOSE $FILES logs control-plane"

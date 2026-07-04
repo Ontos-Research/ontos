@@ -52,10 +52,29 @@ automatically and a secure agent auto-enrolls — set your workspace LLM key in
 
 ## Connecting your data
 
-The bundled agent reaches sources on the same network as this host. Oracle works
-out of the box (thin mode — no Instant Client); SQL Server (ODBC Driver 18) and
-PostgreSQL are built in. Add connections in **Settings → Connections**. For a
+The bundled agent reaches sources on the same network as this host. Oracle (incl.
+legacy password verifiers — Instant Client is bundled), SQL Server (ODBC Driver 18),
+and PostgreSQL are built in. Add connections in **Settings → Connections**. For a
 source on a different network segment, run an additional agent there (ask us).
+
+## Behind a corporate proxy
+
+If this host reaches the internet only through a proxy — especially one that does
+**TLS interception** (re-signs HTTPS with a private root CA, e.g. Cisco WSA) — set
+these in `.env` before installing. The containers inherit neither the host's proxy
+nor its CA trust, so both must be given explicitly:
+
+```
+HTTP_PROXY=http://proxy.corp.example:3128
+HTTPS_PROXY=http://proxy.corp.example:3128
+NO_PROXY=.corp.example,10.0.0.0/8         # extra internal domains/CIDRs
+# Only if the proxy intercepts TLS — a host CA bundle that INCLUDES the proxy root CA:
+ONTOS_CA_BUNDLE=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem   # RHEL
+```
+
+Then `./install.sh` (or `--update`). LLM calls route through the proxy and trust the
+intercepted certificates; loopback + internal traffic (Postgres, the agent, the
+healthcheck) always stay off the proxy. No rebuild needed.
 
 ## License states
 

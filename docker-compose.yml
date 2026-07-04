@@ -42,6 +42,17 @@ services:
       DATADEX_SEED_LLM_PROVIDER: ${DATADEX_SEED_LLM_PROVIDER:-}
       DATADEX_SEED_LLM_API_KEY: ${DATADEX_SEED_LLM_API_KEY:-}
       DATADEX_SEED_LLM_MODEL: ${DATADEX_SEED_LLM_MODEL:-}
+      # Corporate proxy (optional). The control plane's LLM calls use urllib,
+      # which honors these. NO_PROXY always keeps loopback + internal service
+      # traffic (incl. the healthcheck to 127.0.0.1) OFF the proxy; append your
+      # own internal domains via NO_PROXY in .env. If the proxy does TLS
+      # interception, also set ONTOS_CA_BUNDLE (see docker-compose.proxy.yml).
+      HTTP_PROXY: ${HTTP_PROXY:-}
+      HTTPS_PROXY: ${HTTPS_PROXY:-}
+      NO_PROXY: "localhost,127.0.0.1,postgres,control-plane,secure-agent,${NO_PROXY:-}"
+      http_proxy: ${HTTP_PROXY:-}
+      https_proxy: ${HTTPS_PROXY:-}
+      no_proxy: "localhost,127.0.0.1,postgres,control-plane,secure-agent,${NO_PROXY:-}"
     depends_on:
       postgres:
         condition: service_healthy

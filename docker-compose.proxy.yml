@@ -1,0 +1,20 @@
+# Overlay for hosts behind a TLS-intercepting proxy that re-signs outbound HTTPS
+# with a private root CA (e.g. Cisco WSA). Mounts the host's CA bundle into the
+# control plane and points its TLS trust at it — no image rebuild.
+#
+# install.sh applies this automatically when ONTOS_CA_BUNDLE is set in .env, e.g.
+#   ONTOS_CA_BUNDLE=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem   # RHEL
+#   ONTOS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt                  # Debian/Ubuntu
+# The bundle must include the proxy's root (and any intermediate) CA. On RHEL the
+# path above is the merged store after `update-ca-trust`, so it already contains it.
+#
+# The control plane's LLM calls go through urllib, whose default TLS context
+# honors SSL_CERT_FILE; REQUESTS_CA_BUNDLE covers any requests-based code too.
+services:
+  control-plane:
+    environment:
+      SSL_CERT_FILE: /etc/ssl/certs/ontos-proxy-ca.pem
+      REQUESTS_CA_BUNDLE: /etc/ssl/certs/ontos-proxy-ca.pem
+    volumes:
+      # `:ro,z` relabels for SELinux on RHEL (no-op elsewhere).
+      - ${ONTOS_CA_BUNDLE:?set ONTOS_CA_BUNDLE to the host CA bundle path (must contain the proxy root CA)}:/etc/ssl/certs/ontos-proxy-ca.pem:ro,z
