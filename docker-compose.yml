@@ -29,6 +29,9 @@ services:
       DATABASE_URL: postgresql://datadex:${POSTGRES_PASSWORD}@postgres:5432/datadex
       DATADEX_SECRETS_KEY: ${DATADEX_SECRETS_KEY:?set DATADEX_SECRETS_KEY in .env}
       PORT: "8080"
+      # License key (Ed25519). The control plane refuses to start without a valid,
+      # current one. Issued by Ontos Research; also mountable at /app/license.key.
+      ONTOS_LICENSE: ${ONTOS_LICENSE:-}
       # LLM base-URL overrides (deployment-level). Blank => provider public API.
       # Point these at an in-network / in-region OpenAI-compatible endpoint if
       # egress to the public API is blocked from this host.
