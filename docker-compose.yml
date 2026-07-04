@@ -53,6 +53,12 @@ services:
       http_proxy: ${HTTP_PROXY:-}
       https_proxy: ${HTTPS_PROXY:-}
       no_proxy: "localhost,127.0.0.1,postgres,control-plane,secure-agent,${NO_PROXY:-}"
+      # MITM-proxy escape hatch. When a TLS-intercepting proxy's root CA is
+      # non-compliant (e.g. missing the Authority Key Identifier) and can't be
+      # fixed, set ONTOS_TLS_SKIP_VERIFY=1 in .env to skip certificate
+      # verification on LLM egress. Reasonable ONLY because the corporate proxy
+      # already terminates + re-signs the TLS; leave unset for normal verification.
+      PYTHONHTTPSVERIFY: ${ONTOS_TLS_SKIP_VERIFY:+0}
     depends_on:
       postgres:
         condition: service_healthy

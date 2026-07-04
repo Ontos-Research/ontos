@@ -76,6 +76,12 @@ Then `./install.sh` (or `--update`). LLM calls route through the proxy and trust
 intercepted certificates; loopback + internal traffic (Postgres, the agent, the
 healthcheck) always stay off the proxy. No rebuild needed.
 
+If the container rejects the proxy's CA with `CERTIFICATE_VERIFY_FAILED: Missing
+Authority Key Identifier` (a non-compliant corporate CA that the host tolerates but
+modern OpenSSL doesn't) and it can't be corrected, add `ONTOS_TLS_SKIP_VERIFY=1` to
+`.env` to skip verification on LLM egress — reasonable only because the proxy already
+terminates the TLS.
+
 ## License states
 
 Offline Ed25519, verified at startup and live during operation:
