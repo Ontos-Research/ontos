@@ -14,25 +14,21 @@ license is fully offline (works air-gapped).
   expose it directly to the public internet.
 - **Network reachability** from the host to your data sources and to an LLM
   endpoint (OpenAI/Groq public API, or an in-network OpenAI-compatible endpoint).
-- **A license key** and **registry credentials** — both issued by Ontos Research.
+- **A license key** — issued by Ontos Research. The images are free to download;
+  a valid license is required to run.
 
 ## Install
 
-**1. Authenticate to the image registry:**
-
-```bash
-docker login ghcr.io -u <your-username>
-```
-
-**2. (Recommended) Verify the images are genuinely from Ontos Research.** They are
-signed with [cosign](https://docs.sigstore.dev/); `cosign.pub` is in this repo:
+**1. (Recommended) Verify the images are genuinely from Ontos Research.** They are
+public and signed with [cosign](https://docs.sigstore.dev/); `cosign.pub` is in
+this repo (no registry login needed):
 
 ```bash
 cosign verify --key cosign.pub ghcr.io/ontos-research/ontos/control-plane:0.1.0
 cosign verify --key cosign.pub ghcr.io/ontos-research/ontos/secure-agent:0.1.0
 ```
 
-**3. Configure and run:**
+**2. Configure and run:**
 
 ```bash
 git clone https://github.com/ontos-research/ontos.git
@@ -94,5 +90,5 @@ docker compose down -v       # stop and wipe all data
 ## License & support
 
 The Ontos images are **licensed software, not open source** — see [LICENSE](LICENSE).
-For a license key, registry credentials, a new version, or support, contact
-Ontos Research.
+They're free to download; a valid license key is required to run. For a license
+key, a new version, or support, contact Ontos Research.
