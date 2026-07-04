@@ -1,0 +1,16 @@
+Ontos — Proprietary License
+Copyright (c) 2026 Ontos Research. All rights reserved.
+
+This repository contains deployment tooling and documentation for Ontos, a
+proprietary software product. The Ontos container images referenced herein
+(published to ghcr.io/ontos-research/*) are licensed, not open source.
+
+You may use this tooling solely to install, run, and operate Ontos under a valid
+license or evaluation agreement issued by Ontos Research. You may NOT, without
+prior written permission: redistribute the images or tooling; decompile, reverse-
+engineer, or attempt to derive the source of the images; or use them beyond the
+scope of your agreement.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. Contact Ontos
+Research for licensing terms. This notice is a placeholder — replace with your
+executed commercial license / EULA before external distribution.

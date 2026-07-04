@@ -1,0 +1,74 @@
+name: ontos
+
+# Base (runtime) definition — references images by tag only, so it works OFFLINE
+# from pre-loaded images. To BUILD the images from source, add the build overlay:
+#   docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
+# `install.sh` picks the right files for you (build vs. offline).
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: datadex
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: datadex
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U datadex -d datadex"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  control-plane:
+    # Default `ontos/control-plane:local` (build/offline). For a registry pull,
+    # set ONTOS_REGISTRY=ghcr.io/<owner>/ and ONTOS_VERSION=<tag> in .env.
+    image: ${ONTOS_REGISTRY:-}ontos/control-plane:${ONTOS_VERSION:-local}
+    environment:
+      DATABASE_URL: postgresql://datadex:${POSTGRES_PASSWORD}@postgres:5432/datadex
+      DATADEX_SECRETS_KEY: ${DATADEX_SECRETS_KEY:?set DATADEX_SECRETS_KEY in .env}
+      PORT: "8080"
+      # LLM base-URL overrides (deployment-level). Blank => provider public API.
+      # Point these at an in-network / in-region OpenAI-compatible endpoint if
+      # egress to the public API is blocked from this host.
+      DATADEX_OPENAI_RESPONSES_URL: ${DATADEX_OPENAI_RESPONSES_URL:-}
+      DATADEX_GROQ_URL: ${DATADEX_GROQ_URL:-}
+      # First-boot LLM settings for the seeded workspace (written once; the UI
+      # owns it thereafter).
+      DATADEX_SEED_LLM_PROVIDER: ${DATADEX_SEED_LLM_PROVIDER:-}
+      DATADEX_SEED_LLM_API_KEY: ${DATADEX_SEED_LLM_API_KEY:-}
+      DATADEX_SEED_LLM_MODEL: ${DATADEX_SEED_LLM_MODEL:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${DATADEX_PORT:-8080}:8080"
+    volumes:
+      - seed:/shared
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    restart: unless-stopped
+
+  secure-agent:
+    image: ${ONTOS_REGISTRY:-}ontos/secure-agent:${ONTOS_VERSION:-local}
+    environment:
+      DATADEX_API_URL: http://control-plane:8080
+      DATADEX_AGENT_MAX_RUNS: ${DATADEX_AGENT_MAX_RUNS:-4}
+    depends_on:
+      control-plane:
+        condition: service_healthy
+    volumes:
+      - seed:/shared
+      # `:ro,z` keeps the mount SELinux-safe on RHEL (relabel), no-op elsewhere.
+      - ./agent-entrypoint.sh:/entrypoint.sh:ro,z
+    entrypoint: ["sh", "/entrypoint.sh"]
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  seed:
