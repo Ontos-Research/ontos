@@ -21,3 +21,26 @@ if os.environ.get("ONTOS_TLS_SKIP_VERIFY"):
         ssl.create_default_context = _unverified
     except Exception:
         pass
+    # requests / urllib3 (used by the secure-agent's cloud connectors, e.g. the BigQuery client)
+    # build their OWN SSLContext via urllib3.util.ssl_.create_urllib3_context — NOT the stdlib
+    # factories patched above — so the patch above does not reach them. Relax that factory too, or
+    # a TLS-intercepting proxy still fails the handshake for those clients. Opt-in only (this whole
+    # block is gated on ONTOS_TLS_SKIP_VERIFY), and fully defensive so a urllib3 version skew can
+    # never break interpreter startup.
+    try:
+        import ssl as _ssl
+        import urllib3
+        from urllib3.util import ssl_ as _u3
+
+        urllib3.disable_warnings()
+        _orig_ctx = _u3.create_urllib3_context
+
+        def _skip_verify_ctx(*args, **kwargs):
+            ctx = _orig_ctx(*args, **kwargs)
+            ctx.check_hostname = False              # must precede CERT_NONE or Python raises
+            ctx.verify_mode = _ssl.CERT_NONE
+            return ctx
+
+        _u3.create_urllib3_context = _skip_verify_ctx
+    except Exception:
+        pass

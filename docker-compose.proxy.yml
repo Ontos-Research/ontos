@@ -10,6 +10,11 @@
 #
 # The control plane's LLM calls go through urllib, whose default TLS context
 # honors SSL_CERT_FILE; REQUESTS_CA_BUNDLE covers any requests-based code too.
+#
+# The secure-agent gets the SAME bundle: its cloud connectors (e.g. BigQuery via
+# google-cloud-bigquery) use `requests`, which trusts a MITM proxy CA ONLY via
+# REQUESTS_CA_BUNDLE — the stdlib SSL_CERT_FILE alone does not reach it. Without this,
+# a TLS-intercepted BigQuery/OAuth call fails the handshake and the connection test hangs.
 services:
   control-plane:
     environment:
@@ -17,4 +22,10 @@ services:
       REQUESTS_CA_BUNDLE: /etc/ssl/certs/ontos-proxy-ca.pem
     volumes:
       # `:ro,z` relabels for SELinux on RHEL (no-op elsewhere).
+      - ${ONTOS_CA_BUNDLE:?set ONTOS_CA_BUNDLE to the host CA bundle path (must contain the proxy root CA)}:/etc/ssl/certs/ontos-proxy-ca.pem:ro,z
+  secure-agent:
+    environment:
+      SSL_CERT_FILE: /etc/ssl/certs/ontos-proxy-ca.pem
+      REQUESTS_CA_BUNDLE: /etc/ssl/certs/ontos-proxy-ca.pem
+    volumes:
       - ${ONTOS_CA_BUNDLE:?set ONTOS_CA_BUNDLE to the host CA bundle path (must contain the proxy root CA)}:/etc/ssl/certs/ontos-proxy-ca.pem:ro,z

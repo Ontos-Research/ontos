@@ -84,6 +84,22 @@ services:
     environment:
       DATADEX_API_URL: http://control-plane:8080
       DATADEX_AGENT_MAX_RUNS: ${DATADEX_AGENT_MAX_RUNS:-4}
+      # Corporate proxy (optional) — the SAME egress config as the control plane, because
+      # source/destination connectors that reach the public internet run HERE, not in the
+      # control plane. The cloud connectors (e.g. BigQuery via google-cloud-bigquery) use
+      # `requests`, which honors these too. NO_PROXY keeps agent<->control-plane + postgres
+      # traffic OFF the proxy. If the proxy does TLS interception, set ONTOS_CA_BUNDLE
+      # (docker-compose.proxy.yml) — that adds REQUESTS_CA_BUNDLE, which the cloud connectors need.
+      HTTP_PROXY: ${HTTP_PROXY:-}
+      HTTPS_PROXY: ${HTTPS_PROXY:-}
+      NO_PROXY: "localhost,127.0.0.1,postgres,control-plane,secure-agent,${NO_PROXY:-}"
+      http_proxy: ${HTTP_PROXY:-}
+      https_proxy: ${HTTPS_PROXY:-}
+      no_proxy: "localhost,127.0.0.1,postgres,control-plane,secure-agent,${NO_PROXY:-}"
+      # MITM-proxy escape hatch (see the control plane note). The sitecustomize mount below
+      # acts on this and — unlike the stdlib-only patch — also relaxes urllib3/requests so the
+      # cloud connectors' TLS is covered. Prefer ONTOS_CA_BUNDLE; this is the last resort.
+      ONTOS_TLS_SKIP_VERIFY: ${ONTOS_TLS_SKIP_VERIFY:-}
     depends_on:
       control-plane:
         condition: service_healthy
@@ -91,6 +107,8 @@ services:
       - seed:/shared
       # `:ro,z` keeps the mount SELinux-safe on RHEL (relabel), no-op elsewhere.
       - ./agent-entrypoint.sh:/entrypoint.sh:ro,z
+      # Auto-imported at Python startup; only acts when ONTOS_TLS_SKIP_VERIFY is set.
+      - ./sitecustomize.py:/usr/local/lib/python3.13/site-packages/sitecustomize.py:ro,z
     entrypoint: ["sh", "/entrypoint.sh"]
     restart: unless-stopped
 
