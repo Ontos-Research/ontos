@@ -152,6 +152,16 @@ if [ -n "${ONTOS_CA_BUNDLE:-}" ]; then
 fi
 [ -n "${HTTP_PROXY:-}${HTTPS_PROXY:-}" ] && log "Proxy configured — LLM egress routes through it (loopback + internal stay direct)."
 
+# --- 3d. Operator override (docker-compose.override.yml) --------------------
+# Compose auto-merges docker-compose.override.yml ONLY when no -f is passed; install.sh passes an
+# explicit -f, so without this an operator's local override (e.g. a ~/.claude credential mount for
+# the Claude Code subscription in dev) is silently dropped on every run/update. Include it
+# explicitly so it survives install.sh --update instead of needing a manual force-recreate.
+if [ -f docker-compose.override.yml ]; then
+  FILES="$FILES -f docker-compose.override.yml"
+  log "Operator override on — merging docker-compose.override.yml."
+fi
+
 # --- 4. LLM reachability preflight ------------------------------------------
 if [ "$SKIP_PREFLIGHT" -eq 0 ] && [ -n "${DATADEX_SEED_LLM_API_KEY:-}" ]; then
   if [ -n "${DATADEX_OPENAI_RESPONSES_URL:-}${DATADEX_GROQ_URL:-}" ]; then
