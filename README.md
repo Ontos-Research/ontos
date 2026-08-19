@@ -6,6 +6,16 @@ connects out to your Oracle / SQL Server / PostgreSQL. Your data never leaves
 your network — only metadata reaches the control plane, and verification of your
 license is fully offline (works air-gapped).
 
+## What does it do?
+
+- [`docs/what-is-ontos.md`](docs/what-is-ontos.md) — the product in one page
+- [`docs/capabilities.md`](docs/capabilities.md) — capability map: discovery, semantic
+  contract, governance, answers
+- [`docs/ai-access.md`](docs/ai-access.md) — connect Claude Code or any MCP client to a
+  running instance (authenticated, audited, read-only)
+
+Evaluating this repo with an AI assistant? Point it at [`AGENTS.md`](AGENTS.md).
+
 ## Before you install
 
 - **A Linux host with Docker** (compose plugin), ~2 GB free disk, a free port.
