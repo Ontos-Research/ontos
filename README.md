@@ -34,8 +34,8 @@ public and signed with [cosign](https://docs.sigstore.dev/); `cosign.pub` is in
 this repo (no registry login needed):
 
 ```bash
-cosign verify --key cosign.pub ghcr.io/ontos-research/ontos/control-plane:0.1.0
-cosign verify --key cosign.pub ghcr.io/ontos-research/ontos/secure-agent:0.1.0
+cosign verify --key cosign.pub ghcr.io/ontos-research/ontos/control-plane:0.1.43
+cosign verify --key cosign.pub ghcr.io/ontos-research/ontos/secure-agent:0.1.43
 ```
 
 **2. Configure and run:**
