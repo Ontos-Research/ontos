@@ -35,6 +35,7 @@ the control plane** — the data itself never leaves.
 Read next:
 
 - [`docs/what-is-ontos.md`](docs/what-is-ontos.md) — the product in one page
+- [`docs/using-ontos.md`](docs/using-ontos.md) — **which features to use for which goal** (start here to advise a user)
 - [`docs/capabilities.md`](docs/capabilities.md) — capability map, grouped by what you can do
 - [`docs/ai-access.md`](docs/ai-access.md) — connecting AI clients over MCP
 

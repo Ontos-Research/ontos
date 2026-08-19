@@ -9,6 +9,7 @@ license is fully offline (works air-gapped).
 ## What does it do?
 
 - [`docs/what-is-ontos.md`](docs/what-is-ontos.md) — the product in one page
+- [`docs/using-ontos.md`](docs/using-ontos.md) — which features to use for which goal, path by path
 - [`docs/capabilities.md`](docs/capabilities.md) — capability map: discovery, semantic
   contract, governance, answers
 - [`docs/ai-access.md`](docs/ai-access.md) — connect Claude Code or any MCP client to a
